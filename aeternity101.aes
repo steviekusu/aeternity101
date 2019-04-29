@@ -6,7 +6,7 @@ contract MemeVote =
       name           		 : string,
       voteCountValid         : int,
       voteCountInvalid		 : int,
-      voteCountCancelled     : int }
+      voteCountNotsure       : int }
 
   record state =
     { memes      : map(int, meme),
@@ -22,7 +22,17 @@ contract MemeVote =
 	    Some(x) => x
 
   public stateful function registerMeme(url' : string, name' : string) =
-    let meme = { creatorAddress = Call.caller, url = url', name = name', voteCountValid = 0, voteCountInvalid = 0, voteCountCancelled = 0}
+    let meme = { creatorAddress = Call.caller, url = url', name = name', voteCountValid = 0}
+    let index = getMemesLength() + 1
+    put(state{ memes[index] = meme, memesLength = index })
+
+public stateful function registerMeme(url' : string, name' : string) =
+    let meme = { creatorAddress = Call.caller, url = url', name = name', voteCountInvalid = 0}
+    let index = getMemesLength() + 1
+    put(state{ memes[index] = meme, memesLength = index })
+
+ public stateful function registerMeme(url' : string, name' : string) =
+    let meme = { creatorAddress = Call.caller, url = url', name = name', voteCountNotsure = 0}
     let index = getMemesLength() + 1
     put(state{ memes[index] = meme, memesLength = index })
 
@@ -43,9 +53,9 @@ contract MemeVote =
     let updatedMemes = state.memes{ [index].voteCountInvalid = updatedVoteCountInvalid }
     put(state{ memes = updatedMemes })
 
-    public stateful function voteMemeCancelled(index : int) =
+    public stateful function voteMemeNotsure(index : int) =
     let meme = getMeme(index)
     Chain.spend(meme.creatorAddress, Call.value)
-    let updatedVoteCountCancelled = meme.voteCountCancelled + Call.value
-    let updatedMemes = state.memes{ [index].voteCountCancelled = updatedVoteCountCancelled }
+    let updatedVoteCountNotsure = meme.voteCountNotsure + Call.value
+    let updatedMemes = state.memes{ [index].voteCountNotsure = updatedVoteCountNotsure }
     put(state{ memes = updatedMemes })
