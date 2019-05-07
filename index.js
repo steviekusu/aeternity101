@@ -1,4 +1,44 @@
-const contractAddress = 'ak_6A2vcm1Sz6aqJezkLCssUXcyZTX7X8D5UwbuS2fRJr9KkYpRU';
+const contractSource =
+    contract MemeVote =
+        record meme =
+    {
+        creatorAddress: address,
+        url: string,
+        name: string,
+        voteValid: int,
+        voteInvalid: int,
+        voteNotsure: int
+    }
+record state =
+    {
+        memes: map(int, meme),
+        memesLength: int
+    }
+function init() =
+{
+memes = {},
+    memesLength = 0
+}
+public function getMeme(index: int): meme =
+switch (Map.lookup(index, state.memes))
+        None => abort("There was no meme with this index registered.")
+Some(x) => x
+    public stateful function registerMeme(url' : string, name' : string) =
+let meme = { creatorAddress = Call.caller, url = url', name = name', voteValid = 0, voteInvalid = 0, voteNotsure = 0 }
+let index = getMemesLength() + 1
+put(state{ memes[index] = meme, memesLength = index })
+public function getMemesLength(): int =
+state.memesLength
+    public stateful function voteMeme(index: int) =
+let meme = getMeme(index)
+Chain.spend(meme.creatorAddress, Call.value)
+let updatedVoteValid = meme.voteValide + Call.value
+let updatedVoteInvalid = meme.voteInvalid + Call.value
+let updatedVoteNotsure = meme.voteNotsure + Call.value
+let updatedMemes = state.memes{ [index].voteCount = updatedVoteValid, updatedVoteInvalid, updatedVoteNotsure }
+put(state{ memes = updatedMemes })
+
+const contractAddress = 'ct_12cTHUYKUpF5NLgwxEUNmTtSqJZtGtx8ondqGv29TiQfnMWhX';
 var client = null;
 var memeArray = [];
 var memesLength = 0;
@@ -114,7 +154,7 @@ $('#registerBtn').click(async function () {
     const name = ($('#regName').val()),
         url = ($('#regUrl').val());
 
-    await contractCall('registerMeme', `("${url}","${name}")`, 0, '(int)');
+    await contractCall('registerMeme', `("${url}", "${name}")`, 0, '(int)');
 
     memeArray.push({
         creatorName: name,
