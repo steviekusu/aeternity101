@@ -38,6 +38,8 @@ let updatedVoteNotsure = meme.voteNotsure + Call.value
 let updatedMemes = state.memes{ [index].voteCount = updatedVoteValid, updatedVoteInvalid, updatedVoteNotsure }
 put(state{ memes = updatedMemes })
 
+;
+
 const contractAddress = 'ct_12cTHUYKUpF5NLgwxEUNmTtSqJZtGtx8ondqGv29TiQfnMWhX';
 var client = null;
 var memeArray = [];
